@@ -1,39 +1,53 @@
-import { Box, Button, TextField } from "@mui/material";
-import axios from "axios";
+import {
+  Box,
+  Button,
+  FormControl,
+  InputLabel,
+  MenuItem,
+  Select,
+  TextField,
+} from "@mui/material";
 import { useEffect, useState } from "react";
+import http from "../../http";
 import { IPaginacao } from "../../interfaces/IPaginacao";
 import IRestaurante from "../../interfaces/IRestaurante";
 import style from "./ListaRestaurantes.module.scss";
 import Restaurante from "./Restaurante";
+
+interface IParams {
+  search?: string;
+  ordering?: string;
+}
 
 const ListaRestaurantes = () => {
   const [restaurantes, setRestaurantes] = useState<IRestaurante[]>([]);
   const [proximaPagina, setProximaPagina] = useState("");
   const [paginaAnterior, setPaginaAnterior] = useState("");
   const [searchedRestaurant, setSearchedRestaurant] = useState("");
+  const [ordenacao, setOrdenacao] = useState("");
+  const [params, setParams] = useState<IParams>({});
 
   useEffect(() => {
-    if (searchedRestaurant) {
-      return;
-    } else {
-      axios
-        .get<IPaginacao<IRestaurante>>(
-          "http://localhost:8000/api/v1/restaurantes/"
-        )
-        .then((resposta) => {
-          setRestaurantes(resposta.data.results);
-          setProximaPagina(resposta.data.next);
-          setPaginaAnterior(resposta.data.previous);
-        })
-        .catch((erro) => {
-          console.log(erro);
-        });
-    }
-  }, [searchedRestaurant]);
+    http
+      .get<IPaginacao<IRestaurante>>(
+        "http://localhost:8000/api/v1/restaurantes/"
+      )
+      .then((resposta) => {
+        console.log(resposta.data);
+        setRestaurantes(resposta.data.results);
+        setProximaPagina(resposta.data.next);
+        setPaginaAnterior(resposta.data.previous);
+      })
+      .catch((erro) => {
+        console.log(erro);
+      });
+  }, []);
 
   const proxPagina = () => {
-    axios
-      .get<IPaginacao<IRestaurante>>(proximaPagina)
+    http
+      .get<IPaginacao<IRestaurante>>(proximaPagina, {
+        params: params,
+      })
       .then((resposta) => {
         setRestaurantes(resposta.data.results);
         setProximaPagina(resposta.data.next);
@@ -44,8 +58,10 @@ const ListaRestaurantes = () => {
       });
   };
   const pagAnterior = () => {
-    axios
-      .get<IPaginacao<IRestaurante>>(paginaAnterior)
+    http
+      .get<IPaginacao<IRestaurante>>(paginaAnterior, {
+        params: params,
+      })
       .then((resposta) => {
         setRestaurantes(resposta.data.results);
         setProximaPagina(resposta.data.next);
@@ -57,21 +73,26 @@ const ListaRestaurantes = () => {
   };
   const onRestaurantSearch = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    axios
+    const params: IParams = {
+      search: searchedRestaurant,
+      ordering: ordenacao,
+    };
+    http
       .get<IPaginacao<IRestaurante>>(
         "http://localhost:8000/api/v1/restaurantes/",
         {
-          params: {
-            search: searchedRestaurant,
-          },
+          params: params,
         }
       )
       .then((res) => {
         setRestaurantes(res.data.results);
+        setProximaPagina(res.data.next);
+        setPaginaAnterior(res.data.previous);
       })
       .catch((err) => {
         console.log(err);
       });
+    setParams(params);
   };
 
   return (
@@ -92,6 +113,20 @@ const ListaRestaurantes = () => {
           onChange={(e) => setSearchedRestaurant(e.target.value)}
           fullWidth
         />
+        <FormControl fullWidth>
+          <InputLabel id="ordenacao">Ordenar por</InputLabel>
+          <Select
+            labelId="ordenacao-select"
+            id="ordenacao"
+            label="ordenacao"
+            value={ordenacao}
+            onChange={(e) => setOrdenacao(e.target.value)}
+          >
+            <MenuItem value="">Padrão</MenuItem>
+            <MenuItem value="nome">Nome</MenuItem>
+            <MenuItem value="id">Id</MenuItem>
+          </Select>
+        </FormControl>
         <Button fullWidth type="submit" variant="outlined" color="success">
           Buscar
         </Button>

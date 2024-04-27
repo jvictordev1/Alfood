@@ -1,7 +1,7 @@
-import { Button, TextField } from "@mui/material";
-import axios from "axios";
+import { Box, Button, TextField, Typography } from "@mui/material";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
+import http from "../../../http";
 import IRestaurante from "../../../interfaces/IRestaurante";
 
 export default function NewRestauranteForm() {
@@ -10,63 +10,77 @@ export default function NewRestauranteForm() {
 
   useEffect(() => {
     if (params.id) {
-      axios
-        .get<IRestaurante>(
-          `http://localhost:8000/api/v2/restaurantes/${params.id}/`
-        )
-        .then((res) => {
-          setRestaurantNameField(res.data.nome);
-        });
+      http.get<IRestaurante>(`restaurantes/${params.id}/`).then((res) => {
+        setRestaurantNameField(res.data.nome);
+      });
     }
   }, [params]);
   const onRestaurantSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (restaurantNameField === "") {
-      alert("Nome do restaurante não pode ser vazio!");
-      return;
+    if (params.id) {
+      http
+        .put(`restaurantes/${params.id}/`, {
+          nome: restaurantNameField,
+        })
+        .then(() => {
+          alert("Restaurante editado com sucesso!");
+          window.location.href = "/admin/restaurantes";
+        })
+        .catch((err) => {
+          console.log(err);
+        });
     } else {
-      if (params.id) {
-        axios
-          .put(`http://localhost:8000/api/v2/restaurantes/${params.id}/`, {
-            nome: restaurantNameField,
-          })
-          .then(() => {
-            alert("Restaurante editado com sucesso!");
-            window.location.href = "/admin/restaurantes";
-          })
-          .catch((err) => {
-            console.log(err);
-          });
-      } else {
-        axios
-          .post("http://localhost:8000/api/v2/restaurantes/", {
-            nome: restaurantNameField,
-          })
-          .then(() => {
-            alert("Restaurante cadastrado com sucesso!");
-            window.location.href = "/admin/restaurantes";
-          })
-          .catch((err) => {
-            alert("Restaurante não cadastrado.");
-            console.log(err);
-          });
-      }
+      http
+        .post("restaurantes/", {
+          nome: restaurantNameField,
+        })
+        .then(() => {
+          alert("Restaurante cadastrado com sucesso!");
+          window.location.href = "/admin/restaurantes";
+        })
+        .catch((err) => {
+          alert("Restaurante não cadastrado.");
+          console.log(err);
+        });
     }
   };
   return (
-    <div>
+    <Box
+      sx={{
+        width: "100%",
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "center",
+        alignItems: "center",
+      }}
+    >
       {params.id != null ? (
-        <h1>Editar Restaurante</h1>
+        <Typography variant="h4" component="h1">
+          Editar Restaurante
+        </Typography>
       ) : (
-        <h1>Novo Restaurante</h1>
+        <Typography variant="h4" component="h1">
+          Novo Restaurante
+        </Typography>
       )}
-      <form onSubmit={onRestaurantSubmit}>
+      <Box
+        sx={{
+          width: "80%",
+          display: "flex",
+          flexDirection: "column",
+          gap: "10px",
+          paddingTop: "20px",
+        }}
+        component="form"
+        onSubmit={onRestaurantSubmit}
+      >
         <TextField
           value={restaurantNameField}
           onChange={(e) => setRestaurantNameField(e.target.value)}
           id="restaurant-name"
           label="Nome do Restaurante"
           variant="outlined"
+          required
         />
         {params.id != null ? (
           <Button type="submit" variant="contained">
@@ -77,7 +91,7 @@ export default function NewRestauranteForm() {
             Cadastrar
           </Button>
         )}
-      </form>
-    </div>
+      </Box>
+    </Box>
   );
 }
