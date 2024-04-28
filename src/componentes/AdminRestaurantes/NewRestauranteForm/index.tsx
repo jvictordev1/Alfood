@@ -1,4 +1,4 @@
-import { Box, Button, TextField, Typography } from "@mui/material";
+import { Box, Button, Paper, TextField, Typography } from "@mui/material";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import http from "../../../http";
@@ -45,53 +45,57 @@ export default function NewRestauranteForm() {
     }
   };
   return (
-    <Box
-      sx={{
-        width: "100%",
-        display: "flex",
-        flexDirection: "column",
-        justifyContent: "center",
-        alignItems: "center",
-      }}
-    >
-      {params.id != null ? (
-        <Typography variant="h4" component="h1">
-          Editar Restaurante
-        </Typography>
-      ) : (
-        <Typography variant="h4" component="h1">
-          Novo Restaurante
-        </Typography>
-      )}
+    <>
       <Box
         sx={{
-          width: "80%",
+          width: "100%",
           display: "flex",
           flexDirection: "column",
-          gap: "10px",
-          paddingTop: "20px",
+          justifyContent: "center",
+          alignItems: "center",
         }}
-        component="form"
-        onSubmit={onRestaurantSubmit}
       >
-        <TextField
-          value={restaurantNameField}
-          onChange={(e) => setRestaurantNameField(e.target.value)}
-          id="restaurant-name"
-          label="Nome do Restaurante"
-          variant="outlined"
-          required
-        />
-        {params.id != null ? (
-          <Button type="submit" variant="contained">
-            Editar{" "}
-          </Button>
-        ) : (
-          <Button type="submit" variant="contained">
-            Cadastrar
-          </Button>
-        )}
+        <Paper
+          sx={{
+            width: "80%",
+            display: "flex",
+            flexDirection: "column",
+            gap: "10px",
+            padding: "30px",
+          }}
+          component="form"
+          onSubmit={onRestaurantSubmit}
+        >
+          <Box sx={{ textAlign: "center" }}>
+            {params.id != null ? (
+              <Typography variant="h5" component="h1">
+                Editar Restaurante
+              </Typography>
+            ) : (
+              <Typography variant="h5" component="h1">
+                Novo Restaurante
+              </Typography>
+            )}
+          </Box>
+          <TextField
+            value={restaurantNameField}
+            onChange={(e) => setRestaurantNameField(e.target.value)}
+            id="restaurant-name"
+            label="Nome do Restaurante"
+            variant="outlined"
+            required
+          />
+          {params.id != null ? (
+            <Button type="submit" variant="contained">
+              Editar{" "}
+            </Button>
+          ) : (
+            <Button type="submit" variant="contained">
+              Cadastrar
+            </Button>
+          )}
+        </Paper>
       </Box>
-    </Box>
+    </>
   );
 }

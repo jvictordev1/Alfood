@@ -11,17 +11,17 @@ import {
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import http from "../../../http";
-import IRestaurante from "../../../interfaces/IRestaurante";
+import IPrato from "../../../interfaces/IPrato";
 
-export default function AdminRestaurantesPage() {
-  const [restaurantes, setRestaurantes] = useState<IRestaurante[]>([]);
+export default function AdminPratosPage() {
+  const [pratos, setPratos] = useState<IPrato[]>([]);
 
-  const onRestaurantDeleted = (restaurant: IRestaurante) => {
+  const onPratoDeleted = (prato: IPrato) => {
     http
-      .delete(`restaurantes/${restaurant.id}/`)
+      .delete(`pratos/${prato.id}/`)
       .then(() => {
-        setRestaurantes(restaurantes.filter((r) => r.id !== restaurant.id));
-        alert("Restaurante deletado com sucesso!");
+        setPratos(pratos.filter((p) => p.id !== prato.id));
+        alert("Prato deletado com sucesso!");
       })
       .catch((err) => {
         console.log(err);
@@ -30,9 +30,9 @@ export default function AdminRestaurantesPage() {
 
   useEffect(() => {
     http
-      .get<IRestaurante[]>("restaurantes/")
+      .get<IPrato[]>("pratos/")
       .then((res) => {
-        setRestaurantes(res.data);
+        setPratos(res.data);
       })
       .catch((err) => {
         console.log(err);
@@ -46,23 +46,31 @@ export default function AdminRestaurantesPage() {
           <TableHead>
             <TableRow>
               <TableCell>Nome</TableCell>
+              <TableCell>Tag</TableCell>
+              <TableCell>Imagem</TableCell>
               <TableCell>Editar</TableCell>
               <TableCell>Deletar</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
-            {restaurantes.map((r) => {
+            {pratos.map((p) => {
               return (
-                <TableRow key={r.id}>
-                  <TableCell>{r.nome}</TableCell>
+                <TableRow key={p.id}>
+                  <TableCell>{p.nome}</TableCell>
+                  <TableCell>{p.tag}</TableCell>
                   <TableCell>
-                    <Link to={`${r.id}`}>Editar</Link>
+                    <a href={p.imagem} target="blank" rel="noreferrer">
+                      Ver imagem
+                    </a>
+                  </TableCell>
+                  <TableCell>
+                    <Link to={`${p.id}`}>Editar</Link>
                   </TableCell>
                   <TableCell>
                     <Button
                       variant="outlined"
                       color="error"
-                      onClick={() => onRestaurantDeleted(r)}
+                      onClick={() => onPratoDeleted(p)}
                     >
                       Deletar
                     </Button>
