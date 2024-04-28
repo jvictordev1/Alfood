@@ -26,7 +26,10 @@ export default function NewPratoForm() {
   const [selectedTag, setSelectedTag] = useState("");
   const [tags, setTags] = useState<ITags[]>([]);
   const [restaurantes, setRestaurantes] = useState<IRestaurante[]>([]);
-  const [selectedRestaurant, setSelectedRestaurant] = useState("");
+  const [selectedRestaurant, setSelectedRestaurant] = useState<string | Blob>(
+    ""
+  );
+  const [pratoImagem, setPratoImagem] = useState<File | null>(null);
 
   const params = useParams();
 
@@ -34,6 +37,9 @@ export default function NewPratoForm() {
     if (params.id) {
       http.get<IPrato>(`pratos/${params.id}/`).then((res) => {
         setPratoNameField(res.data.nome);
+        setPratoDescription(res.data.descricao);
+        setSelectedTag(res.data.tag);
+        setSelectedRestaurant(res.data.restaurante.toString());
       });
     }
   }, [params]);
@@ -57,31 +63,37 @@ export default function NewPratoForm() {
   }, []);
   const onPratoSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (params.id) {
-      http
-        .put(`pratos/${params.id}/`, {
-          nome: pratoNameField,
-        })
-        .then(() => {
-          alert("Prato editado com sucesso!");
-          window.location.href = "/admin/pratos";
-        })
-        .catch((err) => {
-          console.log(err);
-        });
+    const formData = new FormData();
+    formData.append("nome", pratoNameField);
+    formData.append("tag", selectedTag);
+    if (pratoImagem) {
+      formData.append("imagem", pratoImagem);
+    }
+    formData.append("descricao", pratoDescription);
+    formData.append("restaurante", selectedRestaurant);
+
+    http
+      .request({
+        url: "pratos/",
+        method: "POST",
+        data: formData,
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      })
+      .then(() => {
+        alert("Prato cadastrado com sucesso!");
+        window.location.href = "/admin/pratos";
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  };
+  const onImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files?.length) {
+      setPratoImagem(e.target.files[0]);
     } else {
-      http
-        .post("pratos/", {
-          nome: pratoNameField,
-        })
-        .then(() => {
-          alert("Prato cadastrado com sucesso!");
-          window.location.href = "/admin/pratos";
-        })
-        .catch((err) => {
-          alert("Prato não cadastrado.");
-          console.log(err);
-        });
+      setPratoImagem(null);
     }
   };
 
@@ -143,6 +155,7 @@ export default function NewPratoForm() {
               label="tag"
               value={selectedTag}
               onChange={(e) => setSelectedTag(e.target.value)}
+              required
             >
               {tags.map((tag) => (
                 <MenuItem value={tag.value} key={tag.id}>
@@ -159,14 +172,17 @@ export default function NewPratoForm() {
               label="restaurante"
               value={selectedRestaurant}
               onChange={(e) => setSelectedRestaurant(e.target.value)}
+              required
             >
               {restaurantes.map((r) => (
-                <MenuItem value={r.nome} key={r.id}>
+                <MenuItem value={r.id} key={r.id}>
                   {r.nome}
                 </MenuItem>
               ))}
             </Select>
           </FormControl>
+          <label htmlFor="image">Imagem</label>
+          <input id="image" type="file" onChange={onImageChange} />
           {params.id != null ? (
             <Button type="submit" variant="contained">
               Editar{" "}
